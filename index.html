@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>深眠 DeepSleep · 让每一个夜晚都值得期待</title>
+
+<!--
+  03:14:07  会话建立  用户 #0000
+  03:14:09  滚动事件  用户 #0000
+  03:14:21  停留事件  用户 #0000
+  03:14:21  注意：用户 #0000 在评价区停留超过 8 秒
+  03:14:21  记录已同步
+  03:14:22  它注意到你停下来了。
+-->
+
+<style>
+  :root{--paper:#f8f6f2;--paper2:#efece6;--ink:#16130f;--dim:#6e675e;--accent:#3f6f63;}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{background:var(--paper)}
+  body{
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",-apple-system,BlinkMacSystemFont,sans-serif;
+    background:var(--paper);color:var(--ink);overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+
+  /* ===== 背景水印：极淡，几乎看不见 ===== */
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='700'%3E%3Ctext x='50%25' y='50%25' font-size='110' fill='%2316130f' font-family='sans-serif' text-anchor='middle'%3E用户 %230000 已进入%3C/text%3E%3C/svg%3E");
+    background-repeat:repeat;
+    background-size:900px 700px;
+    opacity:0.016;
+    pointer-events:none;
+    z-index:0;
+    animation:wm 300s linear infinite;
+  }
+  @keyframes wm{from{background-position:0 0}to{background-position:900px 700px}}
+
+  a{color:inherit;text-decoration:none}
+  .wrap{position:relative;z-index:1}
+
+  /* ===== 选中揭示的隐藏文字 ===== */
+  .ghost{color:var(--paper);transition:color .2s}
+  .ghost::selection{color:#fff;background:#16130f}
+  body::selection{background:#16130f;color:#f8f6f2}
+
+  /* ===== 导航 ===== */
+  nav{
+    position:fixed;top:0;left:0;right:0;z-index:100;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 28px;
+    background:rgba(248,246,242,.9);
+    -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+    border-bottom:1px solid rgba(0,0,0,.05);
+  }
+  .logo{font-weight:700;letter-spacing:.1em;font-size:1.02rem;display:flex;align-items:center;gap:8px}
+  .logo .dot{
+    width:5px;height:5px;border-radius:50%;background:var(--accent);
+    animation:dotPulse 3.6s ease-in-out infinite;
+  }
+  @keyframes dotPulse{0%,92%,100%{opacity:.35;background:var(--accent)}94%,97%{opacity:1;background:#b33}}
+  .navlinks{display:flex;gap:30px;font-size:.88rem;opacity:.85}
+  .navlinks a:hover{opacity:.55}
+  .navbtn{
+    border:1px solid var(--ink);border-radius:100px;padding:8px 20px;
+    font-size:.82rem;letter-spacing:.05em;cursor:pointer;background:none;
+    font-family:inherit;transition:.3s;
+  }
+  .navbtn:hover{background:var(--ink);color:var(--paper)}
+
+  /* ===== Hero ===== */
+  .hero{
+    min-height:100vh;min-height:100svh;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:150px 24px 110px;
+  }
+  .badge{
+    display:inline-flex;align-items:center;gap:9px;
+    font-size:.75rem;letter-spacing:.15em;color:var(--accent);
+    border:1px solid rgba(63,111,99,.28);border-radius:100px;
+    padding:7px 18px;margin-bottom:40px;
+  }
+  .badge::before{
+    content:'';width:6px;height:6px;border-radius:50%;
+    background:var(--accent);animation:dotPulse 2.4s ease-in-out infinite;
+  }
+  .hero h1{font-size:clamp(2.6rem,7.2vw,5rem);line-height:1.08;letter-spacing:-.03em;font-weight:700}
+  .hero h1 em{font-style:normal;color:var(--accent)}
+  .hero .sub{margin-top:32px;font-size:clamp(.95rem,2vw,1.1rem);line-height:1.95;color:var(--dim);max-width:36ch}
+  .btn{
+    margin-top:40px;padding:17px 44px;border:none;border-radius:100px;
+    background:var(--ink);color:var(--paper);font-family:inherit;font-size:1rem;
+    letter-spacing:.06em;cursor:pointer;
+    box-shadow:0 14px 34px -14px rgba(0,0,0,.6);
+    transition:transform .35s cubic-bezier(.2,.8,.3,1), box-shadow .35s;
+  }
+  .btn:hover{transform:translateY(-3px);box-shadow:0 22px 46px -16px rgba(0,0,0,.65)}
+  .trust{margin-top:36px;font-size:.76rem;color:#a9a299;letter-spacing:.08em}
+
+  /* ===== 功能 ===== */
+  .features{background:var(--paper2);padding:130px 28px 150px}
+  .sec-head{max-width:760px;margin:0 auto 72px;text-align:center}
+  .eyebrow{font-size:.7rem;letter-spacing:.3em;color:var(--accent);text-transform:uppercase}
+  .sec-head h2{margin-top:18px;font-size:clamp(1.8rem,4vw,2.9rem);letter-spacing:-.02em}
+  .cards{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:24px;max-width:1080px;margin:0 auto;
+  }
+  .card{
+    background:#fff;border:1px solid rgba(0,0,0,.055);border-radius:20px;
+    padding:40px 32px;
+    box-shadow:0 2px 30px -14px rgba(0,0,0,.1);
+    transition:transform .4s, box-shadow .4s;
+  }
+  .card:hover{transform:translateY(-6px);box-shadow:0 24px 50px -22px rgba(0,0,0,.28)}
+  .card .ico{font-size:1.6rem;color:var(--accent);margin-bottom:24px}
+  .card h3{font-size:1.12rem;margin-bottom:12px}
+  .card p{font-size:.92rem;line-height:1.85;color:var(--dim)}
+  /* 第三张卡：hover 时最后一句换掉 */
+  .card .after{display:none;color:#8a4a3e}
+  .card:hover .before{display:none}
+  .card:hover .after{display:inline}
+
+  /* ===== 数据 ===== */
+  .stats-inner{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:56px;max-width:1040px;margin:0 auto;padding:120px 28px;
+  }
+  .stat .num{font-size:clamp(2.2rem,5vw,3.4rem);font-weight:700;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+  .stat .lbl{margin-top:12px;font-size:.85rem;color:var(--dim);line-height:1.75}
+
+  /* ===== 评价 ===== */
+  .reviews{background:var(--paper2);padding:130px 28px 150px}
+  .quotes{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:22px;max-width:1100px;margin:0 auto;
+  }
+  blockquote{
+    background:#fff;border-radius:18px;padding:34px 30px;
+    font-size:.95rem;line-height:1.95;border:1px solid rgba(0,0,0,.05);
+    box-shadow:0 2px 24px -16px rgba(0,0,0,.16);
+    position:relative;
+  }
+  blockquote .avatar{
+    position:absolute;right:28px;bottom:24px;width:22px;height:22px;border-radius:50%;
+    background:#141210;opacity:.85;
+  }
+  blockquote cite{display:block;margin-top:22px;font-style:normal;font-size:.76rem;color:#a9a199;letter-spacing:.06em}
+
+  /* ===== CTA ===== */
+  .cta{padding:150px 28px;text-align:center}
+  .cta h2{font-size:clamp(1.8rem,4.5vw,3rem);letter-spacing:-.02em;margin-bottom:40px}
+
+  /* ===== 页脚 ===== */
+  footer{padding:80px 28px 60px;text-align:center;font-size:.78rem;color:#a9a199;line-height:2.2;letter-spacing:.05em}
+  footer .fl{display:flex;gap:26px;justify-content:center;flex-wrap:wrap;margin-bottom:24px}
+  footer .fl a{color:#8b837a}
+  footer .fl a:hover{color:#16130f}
+  .visitors{margin-top:18px;font-size:.72rem;color:#b5aea5;letter-spacing:.08em}
+  .visitors b{font-weight:400;animation:blinkSoft 4.5s steps(1) infinite}
+  @keyframes blinkSoft{0%,88%,100%{opacity:1}90%,95%{opacity:.2}}
+
+  /* ===== 客服小部件 ===== */
+  #chatBtn{
+    position:fixed;right:22px;bottom:22px;z-index:200;
+    width:46px;height:46px;border-radius:50%;
+    background:var(--ink);color:var(--paper);
+    border:none;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 12px 30px -10px rgba(0,0,0,.5);
+    transition:transform .3s;
+    font-size:1.1rem;
+  }
+  #chatBtn:hover{transform:scale(1.06)}
+  #chatBtn::after{
+    content:'';position:absolute;top:2px;right:2px;
+    width:9px;height:9px;border-radius:50%;background:#b33;
+    border:2px solid var(--ink);
+    animation:dotPulse 3s ease-in-out infinite;
+  }
+  #chatPanel{
+    position:fixed;right:22px;bottom:82px;z-index:201;
+    width:300px;max-width:calc(100vw - 44px);
+    background:#fff;border-radius:16px;overflow:hidden;
+    box-shadow:0 30px 80px -20px rgba(0,0,0,.35);
+    border:1px solid rgba(0,0,0,.06);
+    display:none;flex-direction:column;
+    transform-origin:bottom right;
+    animation:chatIn .35s cubic-bezier(.2,.8,.3,1);
+  }
+  #chatPanel.open{display:flex}
+  @keyframes chatIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+  .chat-head{
+    padding:14px 18px;background:var(--ink);color:var(--paper);
+    font-size:.82rem;letter-spacing:.08em;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .chat-head span{display:flex;align-items:center;gap:8px}
+  .chat-head i{width:6px;height:6px;border-radius:50%;background:#6f9;display:inline-block}
+  .chat-head button{background:none;border:none;color:#aaa;cursor:pointer;font-size:1rem}
+  .chat-body{padding:18px;display:flex;flex-direction:column;gap:10px;min-height:180px;max-height:280px;overflow-y:auto;background:#faf9f6}
+  .msg{
+    max-width:82%;padding:10px 14px;border-radius:14px;
+    font-size:.85rem;line-height:1.6;
+    animation:msgIn .3s ease;
+  }
+  @keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .msg.bot{background:#fff;border:1px solid rgba(0,0,0,.06);align-self:flex-start;border-bottom-left-radius:4px;color:#3a3530}
+  .msg.usr{background:var(--ink);color:var(--paper);align-self:flex-end;border-bottom-right-radius:4px}
+  .msg.typing{color:#a9a199;font-style:italic;background:transparent;border:none;padding-left:4px}
+  .chat-input{display:flex;border-top:1px solid rgba(0,0,0,.06);background:#fff}
+  .chat-input input{
+    flex:1;border:none;outline:none;padding:12px 16px;font-family:inherit;
+    font-size:.85rem;background:none;color:var(--ink);
+  }
+  .chat-input button{
+    border:none;background:none;padding:0 16px;color:var(--accent);
+    cursor:pointer;font-family:inherit;font-size:.82rem;letter-spacing:.05em;
+  }
+
+  /* ===== 隐藏弹窗 ===== */
+  #modal{
+    position:fixed;inset:0;z-index:300;background:rgba(10,8,7,.55);
+    display:none;align-items:center;justify-content:center;padding:24px;
+    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  }
+  #modal.open{display:flex;animation:fadeIn .3s ease}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .modal-box{
+    background:#faf9f6;border-radius:18px;max-width:440px;width:100%;
+    padding:34px 32px;box-shadow:0 40px 100px -20px rgba(0,0,0,.5);
+    animation:msgIn .35s ease;
+  }
+  .modal-box h3{font-size:1.05rem;margin-bottom:8px}
+  .modal-box .meta{font-size:.72rem;color:#a9a199;letter-spacing:.08em;margin-bottom:22px}
+  .modal-box ul{list-style:none;font-size:.85rem;line-height:2.2;color:#3a3530}
+  .modal-box ul li{display:flex;justify-content:space-between;border-bottom:1px dashed rgba(0,0,0,.06);padding:2px 0}
+  .modal-box ul li:last-child{border:none;color:#b33}
+  .modal-box .close{
+    margin-top:26px;width:100%;padding:12px;border:none;border-radius:100px;
+    background:var(--ink);color:var(--paper);font-family:inherit;
+    font-size:.85rem;letter-spacing:.1em;cursor:pointer;
+  }
+
+  /* ===== 最终揭示 ===== */
+  #reveal{
+    position:fixed;inset:0;z-index:500;background:#000;
+    display:none;flex-direction:column;align-items:center;justify-content:center;
+    padding:40px 28px;text-align:center;
+  }
+  #reveal.on{display:flex}
+  #reveal .line{
+    font-family:"SF Mono",Menlo,Consolas,monospace;
+    font-size:clamp(.85rem,2vw,1rem);
+    color:#6b645c;letter-spacing:.08em;line-height:2.4;
+    opacity:0;
+    animation:lineIn .5s ease forwards;
+  }
+  #reveal .line.big{font-size:clamp(1.5rem,4vw,2.2rem);color:#a89e91;letter-spacing:.3em;margin-top:30px}
+  @keyframes lineIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  #reveal .end{
+    margin-top:60px;font-size:clamp(1.8rem,5vw,3rem);color:#8c8478;
+    letter-spacing:.5em;font-weight:300;opacity:0;
+    animation:lineIn 1.4s ease 3.2s forwards;
+  }
+
+  @media (max-width:640px){
+    .navlinks{display:none}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="#">◐ 深眠 <span class="dot"></span></a>
+  <div class="navlinks">
+    <a href="#">产品</a><a href="#">科学</a><a href="#">评价</a><a href="#">下载</a>
+  </div>
+  <button class="navbtn" id="ctaNav">免费体验</button>
+</nav>
+
+<div class="wrap">
+
+  <section class="hero">
+    <div class="badge">临床验证 · 无需药物</div>
+    <h1>让每一个夜晚<br>都值得<em>期待</em></h1>
+    <p class="sub">
+      基于十二年睡眠科学的 AI 助眠系统。<br>
+      超过 200 万个夜晚，在我们这里安然度过。
+      <span class="ghost">不要关掉这个页面。</span>
+    </p>
+    <button class="btn" id="ctaHero">开始你的第一晚</button>
+    <div class="trust">App Store 4.9 ★★★★★ · 32 万条评价</div>
+  </section>
+
+  <section class="features">
+    <div class="sec-head">
+      <div class="eyebrow">核心功能</div>
+      <h2>比你更了解你的夜晚</h2>
+    </div>
+    <div class="cards">
+      <div class="card">
+        <div class="ico">◐</div>
+        <h3>智能监测</h3>
+        <p>实时追踪 42 项生理指标，从心率变异性到眼动频率，为你生成每晚的睡眠结构图。</p>
+      </div>
+      <div class="card">
+        <div class="ico">♪</div>
+        <h3>声音引导</h3>
+        <p>根据你的呼吸频率实时生成专属音景，缓慢下沉，帮助你在 15 分钟内自然入睡。</p>
+      </div>
+      <div class="card">
+        <div class="ico">☾</div>
+        <h3>梦境记录</h3>
+        <p>
+          <span class="before">醒来后自动生成梦境报告，回顾你昨晚的睡眠旅程，了解你的潜意识状态。</span>
+          <span class="after">我们记得你昨晚的梦。第三段，走廊尽头那扇门后面，你停下了。</span>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="stats-inner">
+    <div class="stat"><div class="num" id="n1" data-to="2000000">2,000,000</div><div class="lbl">个夜晚被完整记录</div></div>
+    <div class="stat"><div class="num" id="n2" data-to="98">98</div><div class="lbl">% 的用户在七天内感受到改善</div></div>
+    <div class="stat"><div class="num" id="n3" data-to="41">41</div><div class="lbl">分钟，平均入睡时间缩短</div></div>
+  </section>
+
+  <section class="reviews">
+    <div class="sec-head">
+      <div class="eyebrow">真实反馈</div>
+      <h2>他们都说，睡得很好</h2>
+    </div>
+    <div class="quotes" id="quotes">
+      <blockquote>用了两周，我终于能一觉到天亮了。真的谢谢你们。<cite>—— 林女士，31 岁</cite><span class="avatar"></span></blockquote>
+      <blockquote>声音很舒服，界面也干净。已经推荐给同事了。<cite>—— 张先生，28 岁</cite><span class="avatar"></span></blockquote>
+      <blockquote>作为一个失眠五年的人，这是我用过最有效的 App。<cite>—— 王女士，34 岁</cite><span class="avatar"></span></blockquote>
+      <blockquote>睡眠质量明显提升，早上起来不再是那种被掏空的感觉。<cite>—— 陈先生，42 岁</cite><span class="avatar"></span></blockquote>
+      <!-- 这一条每次刷新位置会变 -->
+      <blockquote id="ghostQuote" style="display:none">
+        我睡得很好。只是早上醒来的时候，房间里总有另一个人的呼吸声。<br>应该是我听错了。
+        <cite>—— 用户 #0000</cite><span class="avatar"></span>
+      </blockquote>
+    </div>
+  </section>
+
+  <section class="cta">
+    <h2>今晚，就从今晚开始。</h2>
+    <button class="btn" id="ctaBottom">免费下载深眠</button>
+  </section>
+
+  <footer>
+    <div class="fl">
+      <a href="#">关于我们</a>
+      <a href="#">隐私政策</a>
+      <a href="#">服务条款</a>
+      <a href="#" id="sitemap">网站地图</a>
+    </div>
+    <div>© 2024 深眠科技 · 保留所有权利</div>
+    <div class="visitors">最近访问：林** · 张** · 王** · 陈** · <b>你</b></div>
+  </footer>
+
+</div>
+
+<!-- 客服 -->
+<button id="chatBtn" aria-label="客服">?</button>
+<div id="chatPanel">
+  <div class="chat-head"><span><i></i>在线客服</span><button id="chatClose">×</button></div>
+  <div class="chat-body" id="chatBody"></div>
+  <div class="chat-input">
+    <input id="chatInput" type="text" placeholder="输入消息…" autocomplete="off">
+    <button id="chatSend">发送</button>
+  </div>
+</div>
+
+<!-- 隐藏弹窗：用户列表 -->
+<div id="modal">
+  <div class="modal-box">
+    <h3>在线用户</h3>
+    <div class="meta">会话 ID · 0x0000</div>
+    <ul id="userList"></ul>
+    <button class="close" id="modalClose">关闭</button>
+  </div>
+</div>
+
+<!-- 最终揭示 -->
+<div id="reveal">
+  <div class="line" style="animation-delay:.2s">用户 #0000</div>
+  <div class="line" id="rTime" style="animation-delay:.8s"></div>
+  <div class="line" id="rDepth" style="animation-delay:1.4s"></div>
+  <div class="line" id="rFocus" style="animation-delay:2.0s"></div>
+  <div class="line big" style="animation-delay:2.6s">你读完了。</div>
+  <div class="end">晚安。</div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ================= 控制台埋点 ================= */
+  var styleLog = 'color:#b33;font-family:monospace;font-size:11px';
+  var styleOk = 'color:#6e675e;font-family:monospace;font-size:11px';
+  console.log('%c[深眠] 会话已建立。用户 #0000 已连接。', styleLog);
+  console.log('%c[深眠] 请勿关闭页面。', styleOk);
+  setTimeout(function(){
+    console.log('%c[深眠] 滚动事件已记录。', styleOk);
+  }, 4000);
+
+  /* ================= 用户行为记录 ================= */
+  var t0 = Date.now();
+  var scrollDepth = 0;
+  var scrollEvents = 0;
+  var focusSection = '首屏';
+  var sectionTimes = {};
+
+  var sectionEls = [
+    {name:'首屏', el: document.querySelector('.hero')},
+    {name:'功能', el: document.querySelector('.features')},
+    {name:'数据', el: document.querySelector('.stats-inner')},
+    {name:'评价', el: document.querySelector('.reviews')},
+    {name:'下载', el: document.querySelector('.cta')},
+    {name:'页脚', el: document.querySelector('footer')}
+  ];
+
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if (en.isIntersecting) {
+        var name = '未知';
+        sectionEls.forEach(function(s){ if (s.el === en.target) name = s.name; });
+        focusSection = name;
+        if (!sectionTimes[name]) sectionTimes[name] = Date.now();
+      }
+    });
+  }, { threshold: 0.5 });
+  sectionEls.forEach(function(s){ if (s.el) io.observe(s.el); });
+
+  window.addEventListener('scroll', function(){
+    var y = window.scrollY || window.pageYOffset;
+    var h = document.documentElement.scrollHeight - window.innerHeight;
+    if (h > 0) {
+      var p = Math.min(1, y / h);
+      if (p > scrollDepth) scrollDepth = p;
+    }
+    scrollEvents++;
+  }, { passive:true });
+
+  /* ================= 数字抖动 ================= */
+  function twitch(id, base){
+    var el = document.getElementById(id);
+    if (!el) return;
+    var orig = base;
+    var interval = setInterval(function(){
+      if (Math.random() < 0.25) {
+        // 短暂闪一个错误的数字
+        el.textContent = (orig - 1).toLocaleString('en-US');
+        setTimeout(function(){
+          el.textContent = orig.toLocaleString('en-US');
+        }, 90 + Math.random() * 140);
+      }
+    }, 5000 + Math.random() * 3000);
+  }
+  twitch('n1', 2000000);
+  twitch('n2', 98);
+  twitch('n3', 41);
+
+  /* ================= 隐藏评价：随机插入位置 ================= */
+  var ghostQuote = document.getElementById('ghostQuote');
+  var quotesEl = document.getElementById('quotes');
+  if (ghostQuote && quotesEl) {
+    var siblings = Array.prototype.slice.call(quotesEl.children).filter(function(c){
+      return c !== ghostQuote;
+    });
+    var idx = Math.floor(Math.random() * (siblings.length + 1));
+    quotesEl.insertBefore(ghostQuote, siblings[idx] || null);
+    ghostQuote.style.display = '';
+  }
+
+  /* ================= 客服小部件 ================= */
+  var chatBtn = document.getElementById('chatBtn');
+  var chatPanel = document.getElementById('chatPanel');
+  var chatBody = document.getElementById('chatBody');
+  var chatInput = document.getElementById('chatInput');
+  var chatSend = document.getElementById('chatSend');
+  var chatClose = document.getElementById('chatClose');
+  var chatOpened = false;
+  var chatStep = 0;
+
+  function addMsg(text, who, delay){
+    return new Promise(function(resolve){
+      setTimeout(function(){
+        var typing = document.createElement('div');
+        typing.className = 'msg bot typing';
+        typing.textContent = '正在输入…';
+        chatBody.appendChild(typing);
+        chatBody.scrollTop = chatBody.scrollHeight;
+
+        setTimeout(function(){
+          typing.remove();
+          var m = document.createElement('div');
+          m.className = 'msg ' + (who === 'usr' ? 'usr' : 'bot');
+          m.textContent = text;
+          chatBody.appendChild(m);
+          chatBody.scrollTop = chatBody.scrollHeight;
+          resolve();
+        }, 700 + Math.random() * 600);
+      }, delay || 0);
+    });
+  }
+
+  function elapsed(){
+    var s = Math.floor((Date.now() - t0) / 1000);
+    return s < 60 ? s + ' 秒' : Math.floor(s / 60) + ' 分 ' + (s % 60) + ' 秒';
+  }
+
+  function startChat(){
+    if (chatOpened) return;
+    chatOpened = true;
+    addMsg('你好。', 'bot', 200)
+      .then(function(){ return addMsg('你已经在页面上停留了 ' + elapsed() + '。', 'bot', 1400); })
+      .then(function(){ return addMsg('有什么可以帮你的吗？', 'bot', 1400); })
+      .then(function(){ chatStep = 1; });
+  }
+
+  chatBtn.addEventListener('click', function(){
+    if (!chatPanel.classList.contains('open')) {
+      chatPanel.classList.add('open');
+      startChat();
+    } else {
+      chatPanel.classList.remove('open');
+    }
+  });
+  chatClose.addEventListener('click', function(){ chatPanel.classList.remove('open'); });
+
+  function sendUser(){
+    var v = chatInput.value.trim();
+    if (!v) return;
+    chatInput.value = '';
+    addMsg(v, 'usr', 0).then(function(){
+      if (chatStep === 1) {
+        chatStep = 2;
+        addMsg('我们收到了。请稍等。', 'bot', 1200)
+          .then(function(){ return addMsg('没有人会来。', 'bot', 5500); });
+      } else {
+        addMsg('我们仍在处理上一条消息。', 'bot', 1800);
+      }
+    });
+  }
+  chatSend.addEventListener('click', sendUser);
+  chatInput.addEventListener('keydown', function(e){
+    if (e.key === 'Enter') sendUser();
+  });
+
+  /* ================= 隐藏弹窗：网站地图 / 用户列表 ================= */
+  var modal = document.getElementById('modal');
+  var userList = document.getElementById('userList');
+  var modalClose = document.getElementById('modalClose');
+
+  document.getElementById('sitemap').addEventListener('click', function(e){
+    e.preventDefault();
+    userList.innerHTML = '';
+    var lines = ['用户 #0000（你）'];
+    for (var i = 1; i <= 66; i++) {
+      lines.push('用户 #' + String(i).padStart(4, '0'));
+    }
+    lines.push('用户 #你');
+    lines.forEach(function(t){
+      var li = document.createElement('li');
+      li.innerHTML = '<span>' + t + '</span><span>' + (t.indexOf('#你') > -1 ? '刚刚' : '在线') + '</span>';
+      userList.appendChild(li);
+    });
+    modal.classList.add('open');
+  });
+  modalClose.addEventListener('click', function(){ modal.classList.remove('open'); });
+  modal.addEventListener('click', function(e){ if (e.target === modal) modal.classList.remove('open'); });
+
+  /* ================= 控制台：底部触发 ================= */
+  window.addEventListener('scroll', function(){
+    var y = window.scrollY || window.pageYOffset;
+    var h = document.documentElement.scrollHeight - window.innerHeight;
+    if (h > 0 && y >= h - 20 && !window.__bottomLogged) {
+      window.__bottomLogged = true;
+      console.log('%c[深眠] 用户 #0000 已到达页面底部。', styleLog);
+      console.log('%c[深眠] 它在等你。', styleOk);
+    }
+  }, { passive:true });
+
+  /* ================= 最终揭示 ================= */
+  var revealed = false;
+  var reveal = document.getElementById('reveal');
+
+  function formatDuration(ms){
+    var s = Math.floor(ms / 1000);
+    var m = Math.floor(s / 60);
+    var ss = s % 60;
+    return (m > 0 ? m + ' 分 ' : '') + ss + ' 秒';
+  }
+
+  function doReveal(){
+    if (revealed) return;
+    revealed = true;
+
+    // 填充数据
+    document.getElementById('rTime').textContent =
+      '本次访问：' + formatDuration(Date.now() - t0);
+    document.getElementById('rDepth').textContent =
+      '滚动深度：' + Math.round(scrollDepth * 100) + '% · 滚动事件：' + scrollEvents + ' 次';
+    document.getElementById('rFocus').textContent =
+      '停留最久的区块：' + focusSection;
+
+    // 渐黑
+    var cover = document.createElement('div');
+    cover.style.cssText =
+      'position:fixed;inset:0;background:#000;z-index:490;opacity:0;' +
+      'transition:opacity 1.8s ease;pointer-events:none';
+    document.body.appendChild(cover);
+    requestAnimationFrame(function(){ cover.style.opacity = '1'; });
+
+    setTimeout(function(){
+      reveal.classList.add('on');
+    }, 1900);
+  }
+
+  // 触发条件 1：停留超过 55 秒
+  setTimeout(function(){
+    if (!revealed) doReveal();
+  }, 55000);
+
+  // 触发条件 2：滚到底后停留 7 秒
+  var bottomTimer = null;
+  var atBottom = false;
+  window.addEventListener('scroll', function(){
+    if (revealed) return;
+    var y = window.scrollY || window.pageYOffset;
+    var h = document.documentElement.scrollHeight - window.innerHeight;
+    var isBottom = h > 0 && y >= h - 12;
+
+    if (isBottom && !atBottom) {
+      atBottom = true;
+      clearTimeout(bottomTimer);
+      bottomTimer = setTimeout(function(){
+        if (!revealed) doReveal();
+      }, 7000);
+    } else if (!isBottom) {
+      atBottom = false;
+      clearTimeout(bottomTimer);
+    }
+  }, { passive:true });
+
+  /* ================= CTA 点击也触发揭示 ================= */
+  ['ctaNav','ctaHero','ctaBottom'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('click', function(e){
+      e.preventDefault();
+      doReveal();
+    });
+  });
+
+})();
+</script>
+
+</body>
+</html>
